@@ -18,6 +18,14 @@ function ProfileManager.GetProfile(player: Player)
 	return Profiles[player]
 end
 
+local function UpdateProfile(player:Player, data: table)
+	local profile = Profiles[player]
+	if profile then
+		profile.Data = data
+		profile:Save() -- Save the updated profile data to the data store
+	end
+end
+
 local function PlayerAdded(player)
 	-- Start a profile session for this player's data:
 
@@ -43,7 +51,8 @@ local function PlayerAdded(player)
 			-- warn(`Profile loaded for {player.DisplayName}!`)
 			-- Notify the client that the profile is ready
 			-- Fire the client-side event:FireClient(player, profile.Data)
-			RemoteEventManager.FireClient(Define.RemoteEvents.RE_PlayerProfileReady, player)
+			RemoteEventManager.FireClient(Define.RemoteEvents.RE_PlayerProfileReady, player, profile.Data)
+			RemoteEventManager.OnServerConnect(Define.RemoteEvents.RE_PlayerProfileUpdate, UpdateProfile)
 			-- Fire the server-side event to unblock other scripts
 			BindableEventManager.FireServer(Define.BindableEvents.BE_ProfileReady, player, profile.Data)
 		else
