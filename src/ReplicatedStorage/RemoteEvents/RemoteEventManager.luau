@@ -17,8 +17,14 @@ local function getOrCreateEvent(name)
 end
 
 function RemoteEventManager.Init()
-	-- Create event when call on client before server
-	getOrCreateEvent(Define.RemoteEvents.RE_PlayerProfileReady)
+	if not IS_SERVER then
+		warn("RemoteEventManager should be initialized on the server only.")
+		return
+	end
+	-- Create all remote events
+	for _, eventName in pairs(Define.RemoteEvents) do
+		getOrCreateEvent(eventName)
+	end
 end
 
 function RemoteEventManager.OnServerConnect(name, callback)

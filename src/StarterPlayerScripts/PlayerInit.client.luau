@@ -27,3 +27,12 @@ RemoteEventManager.OnClientConnect(Define.RemoteEvents.RE_PlayerProfileReady, fu
     print("Sent updated profile to the server!")
 end)
 
+RemoteEventManager.OnClientConnect(Define.RemoteEvents.RE_PlayerProfileChanged, function(data)
+    print(`Profile has been changed on the client {player.Name}!`)
+
+    -- You can also print the updated profile data here to verify the change
+    for key, value in pairs(data) do
+        print(`{key}: {value}`)
+    end
+end)
+

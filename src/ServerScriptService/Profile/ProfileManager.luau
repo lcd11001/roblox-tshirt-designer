@@ -21,8 +21,15 @@ end
 local function UpdateProfile(player:Player, data: table)
 	local profile = Profiles[player]
 	if profile then
+		-- update timestamp to show that the profile has been updated
+		data.LastUpdated = os.time()
+
 		profile.Data = data
 		profile:Save() -- Save the updated profile data to the data store
+
+		-- Notify the client that the profile has been changed
+		RemoteEventManager.FireClient(Define.RemoteEvents.RE_PlayerProfileChanged, player, profile.Data)
+		BindableEventManager.FireServer(Define.BindableEvents.BE_ProfileChanged, player, profile.Data)
 	end
 end
 
@@ -55,6 +62,7 @@ local function PlayerAdded(player)
 			RemoteEventManager.OnServerConnect(Define.RemoteEvents.RE_PlayerProfileUpdate, UpdateProfile)
 			-- Fire the server-side event to unblock other scripts
 			BindableEventManager.FireServer(Define.BindableEvents.BE_ProfileReady, player, profile.Data)
+			BindableEventManager.OnServerConnect(Define.BindableEvents.BE_ProfileUpdate, UpdateProfile)
 		else
 			-- The player has left before the profile session started
 			profile:EndSession()
@@ -79,6 +87,30 @@ function ProfileManager.Init()
 			profile:EndSession()
 		end
 	end)
+end
+
+function ProfileManager.PrintProfile(player: Player, data: table, indent: number)
+    -- default indent to 0 if not provided
+    indent = indent or 0
+	-- default data to Profiles[player].Data if not provided
+	data = data or Profiles[player].Data
+    
+    if indent == 0 then
+        warn(`Player profile data for player: {player.Name}`)
+    end
+    for key, value in pairs(data) do
+        if type(value) == "table" then
+            if #value == 0 then
+                print(`{string.rep(" ", indent)}{key}: \{}`) -- Print empty tables
+                continue
+            end
+            print(`{string.rep(" ", indent)}{key}:\{`)
+            ProfileManager.PrintProfile(player, value, indent + 2) -- Recursively print nested tables
+            print(`{string.rep(" ", indent)}}`)
+        else
+            print(`{string.rep(" ", indent)}{key}: {value}`)
+        end
+    end
 end
 
 return ProfileManager

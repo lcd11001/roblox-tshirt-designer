@@ -17,8 +17,14 @@ local function getOrCreateEvent(name)
 end
 
 function BindableEventManager.Init()
-	-- Create event when call on client before server
-	getOrCreateEvent(Define.BindableEvents.BE_ProfileReady)
+    if not IS_SERVER then
+		warn("BindableEventManager should be initialized on the server only.")
+		return
+	end
+	-- Create all bindable events
+    for _, eventName in pairs(Define.BindableEvents) do
+        getOrCreateEvent(eventName)
+    end
 end
 
 function BindableEventManager.OnServerConnect(name, callback)

@@ -11,27 +11,7 @@ local BindableEventManager = require(ReplicatedStorage.BindableEvents.BindableEv
 local Define = require(ReplicatedStorage.Define)
 local ProfileManager = require(script.Parent.Profile.ProfileManager)
 
-local function PrintPlayerProfile(player: Player, data: table, indent: number)
-    -- default indent to 0 if not provided
-    indent = indent or 0
-    
-    if indent == 0 then
-        warn(`Player profile data for player: {player.Name}`)
-    end
-    for key, value in pairs(data) do
-        if type(value) == "table" then
-            if #value == 0 then
-                print(`{string.rep(" ", indent)}{key}: \{}`) -- Print empty tables
-                continue
-            end
-            print(`{string.rep(" ", indent)}{key}:\{`)
-            PrintPlayerProfile(player, value, indent + 2) -- Recursively print nested tables
-            print(`{string.rep(" ", indent)}}`)
-        else
-            print(`{string.rep(" ", indent)}{key}: {value}`)
-        end
-    end
-end
+
 
 local function OnPlayerAdded(player: Player)
 	-- Set up a listener for when the player's character is added
@@ -49,7 +29,7 @@ local function OnPlayerAdded(player: Player)
     local data = ProfileManager.GetProfile(player)
 	if data then
         print(`Profile already ready for player: {player.Name}, loading character immediately.`)
-        PrintPlayerProfile(player, data)
+        ProfileManager.PrintProfile(player, data)
 		player:LoadCharacterAsync()
 		return
 	end
@@ -58,7 +38,16 @@ local function OnPlayerAdded(player: Player)
 	BindableEventManager.OnServerConnect(Define.BindableEvents.BE_ProfileReady, function(readyPlayer, playerData)
 		if readyPlayer == player then
 			print(`Profile ready for player: {player.Name}, loading character now.`)
-			PrintPlayerProfile(player, playerData)
+			ProfileManager.PrintProfile(player, playerData)
+
+            -- simulate change in profile data after loading
+            -- this is just for testing, you can remove it later
+            task.delay(5, function()
+                local updatedData = table.clone(ProfileManager.GetProfile(player).Data)
+                updatedData.Cash = (updatedData.Cash or 0) + 50 -- Add 50 cash as an example update
+                BindableEventManager.FireServer(Define.BindableEvents.BE_ProfileUpdate, player, updatedData)
+            end)
+
 			-- you can load the character immediately
 			player:LoadCharacterAsync()
 		end
