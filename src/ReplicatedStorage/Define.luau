@@ -9,6 +9,7 @@ local BindableEvents = {
     BE_ProfileReady = "BE_ProfileReady",
     BE_ProfileUpdate = "BE_ProfileUpdate",
     BE_ProfileChanged = "BE_ProfileChanged",
+    BE_ProfilePrint = "BE_ProfilePrint",
 }
 
 return {

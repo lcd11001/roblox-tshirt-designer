@@ -54,14 +54,17 @@ function ProfileManager.GetProfile(player: Player)
 	return Profiles[player]
 end
 
-local function UpdateProfile(player: Player, data: table)
+local function UpdateProfile(player: Player, data: table, overwrite: boolean)
+
 	local profile = Profiles[player]
 	if profile then
-		-- update timestamp to show that the profile has been updated
-		data.LastUpdated = os.time()
-
+		
 		local convertedData = ConvertNumericStringKeys(data) -- Fix json encoding converting numeric keys to strings
-		local mergeData = DeepMerge(profile.Data, convertedData)
+		local mergeData = overwrite and convertedData or DeepMerge(profile.Data, convertedData)
+
+		-- update timestamp to show that the profile has been updated
+		mergeData.LastUpdated = os.time()
+		
 		profile.Data = mergeData
 		profile:Save() -- Save the updated profile data to the data store
 
@@ -93,15 +96,16 @@ local function PlayerAdded(player)
 
 		if player.Parent == Players then
 			Profiles[player] = profile
+			profile.Data.PlayerName = player.Name -- For debugging purposes only, not used for indexing
 			-- warn(`Profile loaded for {player.DisplayName}!`)
+			
 			-- Notify the client that the profile is ready
 			-- Fire the client-side event:FireClient(player, profile.Data)
 			RemoteEventManager.FireClient(Define.RemoteEvents.RE_PlayerProfileReady, player, profile.Data)
-			RemoteEventManager.OnServerConnect(Define.RemoteEvents.RE_PlayerProfileUpdate, UpdateProfile)
-			RemoteEventManager.OnServerConnect(Define.RemoteEvents.RE_PlayerProfilePrint, ProfileManager.PrintProfile)
+			
+			-- Notify other server-side scripts that the profile is ready
 			-- Fire the server-side event to unblock other scripts
 			BindableEventManager.FireServer(Define.BindableEvents.BE_ProfileReady, player, profile.Data)
-			BindableEventManager.OnServerConnect(Define.BindableEvents.BE_ProfileUpdate, UpdateProfile)
 		else
 			-- The player has left before the profile session started
 			profile:EndSession()
@@ -113,6 +117,11 @@ local function PlayerAdded(player)
 end
 
 function ProfileManager.Init()
+	RemoteEventManager.OnServerConnect(Define.RemoteEvents.RE_PlayerProfileUpdate, UpdateProfile)
+	RemoteEventManager.OnServerConnect(Define.RemoteEvents.RE_PlayerProfilePrint, ProfileManager.PrintProfile)
+	BindableEventManager.OnServerConnect(Define.BindableEvents.BE_ProfileUpdate, UpdateProfile)
+	BindableEventManager.OnServerConnect(Define.BindableEvents.BE_ProfilePrint, ProfileManager.PrintProfile)
+
 	-- In case Players have joined the server earlier than this script ran:
 	for _, player in Players:GetPlayers() do
 		task.spawn(PlayerAdded, player)
