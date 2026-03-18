@@ -1,7 +1,6 @@
 -- The PROFILE_TEMPLATE table is what new profile "Profile.Data" will default to:
 local PROFILE_TEMPLATE = {
-   PlayerName = "",
-   LastUpdated = 0,
+   PlayerName = "", -- For debugging purposes only, not used for indexing
    Cash = 0,
    Items = {},
 }

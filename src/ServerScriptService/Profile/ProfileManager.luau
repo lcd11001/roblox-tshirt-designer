@@ -61,9 +61,6 @@ local function UpdateProfile(player: Player, data: table, overwrite: boolean)
 		
 		local convertedData = ConvertNumericStringKeys(data) -- Fix json encoding converting numeric keys to strings
 		local mergeData = overwrite and convertedData or DeepMerge(profile.Data, convertedData)
-
-		-- update timestamp to show that the profile has been updated
-		mergeData.LastUpdated = os.time()
 		
 		profile.Data = mergeData
 		profile:Save() -- Save the updated profile data to the data store
