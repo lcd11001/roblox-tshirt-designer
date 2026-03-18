@@ -29,7 +29,6 @@ local function OnPlayerAdded(player: Player)
     local data = ProfileManager.GetProfile(player)
 	if data then
         print(`Profile already ready for player: {player.Name}, loading character immediately.`)
-        ProfileManager.PrintProfile(player, data)
 		player:LoadCharacterAsync()
 		return
 	end
@@ -38,15 +37,17 @@ local function OnPlayerAdded(player: Player)
 	BindableEventManager.OnServerConnect(Define.BindableEvents.BE_ProfileReady, function(readyPlayer, playerData)
 		if readyPlayer == player then
 			print(`Profile ready for player: {player.Name}, loading character now.`)
-			ProfileManager.PrintProfile(player, playerData)
 
             -- simulate change in profile data after loading
             -- this is just for testing, you can remove it later
-            task.delay(5, function()
-                local updatedData = table.clone(ProfileManager.GetProfile(player).Data)
-                updatedData.Cash = (updatedData.Cash or 0) + 50 -- Add 50 cash as an example update
-                BindableEventManager.FireServer(Define.BindableEvents.BE_ProfileUpdate, player, updatedData)
-            end)
+            -- task.delay(5, function()
+			-- 	local runtimeData = ProfileManager.GetProfile(player).Data
+            --     local updatedData = {}
+            --     updatedData.Cash = (runtimeData.Cash or 0) + 50 -- Add 50 cash as an example update
+			-- 	-- NOTE: You should only send the updated fields to the server, not the entire profile data,
+    		-- 	-- to avoid overwriting other fields that may have been changed on the server.
+            --     BindableEventManager.FireServer(Define.BindableEvents.BE_ProfileUpdate, player, updatedData)
+            -- end)
 
 			-- you can load the character immediately
 			player:LoadCharacterAsync()

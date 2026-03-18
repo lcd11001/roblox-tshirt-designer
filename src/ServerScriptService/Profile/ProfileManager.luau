@@ -14,22 +14,60 @@ local Profiles: { [Player]: typeof(PlayerStore:StartSessionAsync()) } = {}
 
 local ProfileManager = {}
 
+local function ConvertNumericStringKeys(t)
+	if type(t) ~= "table" then
+		return t
+	end
+
+	local newT = {}
+	for k, v in pairs(t) do
+		local newK = k
+		if type(k) == "string" then
+			local num = tonumber(k)
+			if num and tostring(num) == k then
+				newK = num
+			end
+		end
+		newT[newK] = ConvertNumericStringKeys(v)
+	end
+	return newT
+end
+
+local function DeepMerge(original, new)
+	-- local result = {}
+	-- for k, v in pairs(original) do
+	-- 	result[k] = v
+	-- end
+	local result = table.clone(original)
+
+	for k, v in pairs(new) do
+		if type(v) == "table" and type(result[k]) == "table" and not rawequal(getmetatable(v), { __mode = "k" }) then
+			result[k] = DeepMerge(result[k], v)
+		else
+			result[k] = v
+		end
+	end
+	return result
+end
+
 function ProfileManager.GetProfile(player: Player)
 	return Profiles[player]
 end
 
-local function UpdateProfile(player:Player, data: table)
+local function UpdateProfile(player: Player, data: table)
 	local profile = Profiles[player]
 	if profile then
 		-- update timestamp to show that the profile has been updated
 		data.LastUpdated = os.time()
 
-		profile.Data = data
+		local convertedData = ConvertNumericStringKeys(data) -- Fix json encoding converting numeric keys to strings
+		local mergeData = DeepMerge(profile.Data, convertedData)
+		profile.Data = mergeData
 		profile:Save() -- Save the updated profile data to the data store
 
 		-- Notify the client that the profile has been changed
-		RemoteEventManager.FireClient(Define.RemoteEvents.RE_PlayerProfileChanged, player, profile.Data)
-		BindableEventManager.FireServer(Define.BindableEvents.BE_ProfileChanged, player, profile.Data)
+		RemoteEventManager.FireClient(Define.RemoteEvents.RE_PlayerProfileChanged, player, mergeData)
+		BindableEventManager.FireServer(Define.BindableEvents.BE_ProfileChanged, player, mergeData)
 	end
 end
 
