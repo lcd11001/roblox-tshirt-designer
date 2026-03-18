@@ -3,6 +3,8 @@ local RemoteEvents = {
     RE_PlayerProfileUpdate = "RE_PlayerProfileUpdate",
     RE_PlayerProfileChanged = "RE_PlayerProfileChanged",
     RE_PlayerProfilePrint = "RE_PlayerProfilePrint",
+
+    RE_UpdateLogo = "RE_UpdateLogo",
 }
 
 local BindableEvents = {
