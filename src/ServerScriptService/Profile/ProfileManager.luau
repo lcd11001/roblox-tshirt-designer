@@ -60,6 +60,7 @@ local function PlayerAdded(player)
 			-- Fire the client-side event:FireClient(player, profile.Data)
 			RemoteEventManager.FireClient(Define.RemoteEvents.RE_PlayerProfileReady, player, profile.Data)
 			RemoteEventManager.OnServerConnect(Define.RemoteEvents.RE_PlayerProfileUpdate, UpdateProfile)
+			RemoteEventManager.OnServerConnect(Define.RemoteEvents.RE_PlayerProfilePrint, ProfileManager.PrintProfile)
 			-- Fire the server-side event to unblock other scripts
 			BindableEventManager.FireServer(Define.BindableEvents.BE_ProfileReady, player, profile.Data)
 			BindableEventManager.OnServerConnect(Define.BindableEvents.BE_ProfileUpdate, UpdateProfile)
